@@ -1,0 +1,30 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  batch:
+
+exporters:
+  logging:
+    verbosity: detailed
+  prometheus:
+    endpoint: otel-collector:8889
+    namespace: "noisemaker"
+  otlp:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging, otlp]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging, prometheus]

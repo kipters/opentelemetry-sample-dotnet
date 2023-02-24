@@ -1,0 +1,40 @@
+version: '3'
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./docker/otel-collector-config.yml:/etc/otel-collector-config.yml:ro
+    ports:
+      - 4317:4317
+      - 4318:4318
+  loki:
+    image: grafana/loki
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    ports:
+      - 3100:3100
+
+  grafana:
+    image: grafana/grafana-oss
+    volumes:
+      - ./docker/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+      - 3000:3000
+  
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  tempo:
+    image: grafana/tempo
+    command: ["-config.file=/etc/tempo.yml"]
+    volumes:
+      - ./docker/tempo/tempo.yml:/etc/tempo.yml:ro
+      - ./docker/tempo/data:/tmp/tempo:rw
